@@ -155,6 +155,7 @@
     @media (max-width: 900px) {
       body {
         flex-direction: column;
+        padding-bottom: env(safe-area-inset-bottom);
       }
 
       #chord {
@@ -172,7 +173,11 @@
         flex-direction: row;
         align-items: center;
         gap: 14px;
-        padding: 16px;
+
+        /* 🔥 Safari bottom bar fix */
+        padding: 16px 16px
+          calc(16px + env(safe-area-inset-bottom));
+
         border-left: none;
         border-top: 1px solid rgba(255,255,255,0.08);
       }
