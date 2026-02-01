@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Guitar Chord Trainer</title>
+
+  <!-- Mobile / Tablet support -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+      color: #fff;
+      display: flex;
+      overflow: hidden;
+
+      background:
+        linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)),
+        url("BackgroundImage.jpg") center / cover no-repeat;
+    }
+
+    /* ======================
+       MAIN CHORD AREA
+       ====================== */
+    .main {
+      flex: 1;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #chord {
+      font-size: 320px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      transition:
+        transform 0.6s cubic-bezier(.22,1.61,.36,1),
+        opacity 0.4s ease,
+        filter 0.4s ease;
+    }
+
+    .chord-out {
+      opacity: 0;
+      transform: scale(0.75);
+      filter: blur(6px);
+    }
+
+    .chord-in {
+      opacity: 1;
+      transform: scale(1);
+      filter: blur(0);
+    }
+
+    /* Countdown */
+    #countdown {
+      position: absolute;
+      right: 120px;
+      bottom: 120px;
+      font-size: 86px;
+      font-weight: 700;
+      color: #ff3b30;
+
+      -webkit-text-stroke: 1.5px #000;
+      text-stroke: 1.5px #000;
+
+      text-shadow:
+        0 0 6px rgba(255,255,255,0.9),
+        0 0 12px rgba(255,255,255,0.6),
+        0 0 18px rgba(255,255,255,0.3);
+
+      opacity: 0.95;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .countdown-pop {
+      transform: scale(1.15);
+    }
+
+    /* ======================
+       SETTINGS PANEL
+       ====================== */
+    .settings {
+      width: 280px;
+      padding: 36px 24px;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(24px);
+      border-left: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .app-title {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      opacity: 0.75;
+      text-transform: uppercase;
+    }
+
+    .settings label {
+      font-size: 12px;
+      opacity: 0.7;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 16px;
+      border-radius: 12px;
+      border: none;
+      outline: none;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    button {
+      flex: 1;
+      padding: 10px;
+      font-size: 14px;
+      border-radius: 14px;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      background: rgba(255,255,255,0.15);
+      transition: background 0.2s ease, transform 0.15s ease;
+    }
+
+    button:active {
+      transform: scale(0.96);
+    }
+
+    .start-active {
+      background: #34c759;
+    }
+
+    .stop-active {
+      background: #ff3b30;
+    }
+
+    /* ======================
+       RESPONSIVE (MOBILE)
+       ====================== */
+    @media (max-width: 900px) {
+      body {
+        flex-direction: column;
+      }
+
+      #chord {
+        font-size: 180px;
+      }
+
+      #countdown {
+        right: 24px;
+        bottom: 24px;
+        font-size: 48px;
+      }
+
+      .settings {
+        width: 100%;
+        flex-direction: row;
+        align-items: center;
+        gap: 14px;
+        padding: 16px;
+        border-left: none;
+        border-top: 1px solid rgba(255,255,255,0.08);
+      }
+
+      .settings label {
+        display: none;
+      }
+
+      .settings input {
+        max-width: 90px;
+      }
+
+      .btn-row {
+        flex: 1;
+      }
+    }
+
+    /* Extra small phones */
+    @media (max-width: 480px) {
+      #chord {
+        font-size: 120px;
+        letter-spacing: 2px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div id="chord" class="chord-in">C</div>
+    <div id="countdown"></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="settings">
+    <div class="app-title">🎸 Trainer</div>
+
+    <input type="number" id="interval" value="5" min="1">
+
+    <div class="btn-row">
+      <button id="startBtn" onclick="start()">Start</button>
+      <button id="stopBtn" onclick="stop()">Stop</button>
+    </div>
+  </div>
+
+  <!-- External chord list -->
+  <script src="chords.js"></script>
+
+  <script>
+    let chordTimer = null;
+    let countdownTimer = null;
+
+    let shuffledChords = [];
+    let chordIndex = 0;
+
+    const chordEl = document.getElementById("chord");
+    const countdownEl = document.getElementById("countdown");
+    const startBtn = document.getElementById("startBtn");
+    const stopBtn = document.getElementById("stopBtn");
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function showChord(chord) {
+      chordEl.classList.remove("chord-in");
+      chordEl.classList.add("chord-out");
+
+      setTimeout(() => {
+        chordEl.textContent = chord;
+        chordEl.classList.remove("chord-out");
+        chordEl.classList.add("chord-in");
+      }, 350);
+    }
+
+    function startCountdown(seconds) {
+      clearInterval(countdownTimer);
+      let remaining = seconds;
+      countdownEl.textContent = remaining;
+
+      countdownTimer = setInterval(() => {
+        remaining--;
+        if (remaining > 0) {
+          countdownEl.textContent = remaining;
+          countdownEl.classList.add("countdown-pop");
+          setTimeout(() => countdownEl.classList.remove("countdown-pop"), 150);
+        }
+      }, 1000);
+    }
+
+    function start() {
+      const seconds = Number(document.getElementById("interval").value);
+
+      stop();
+
+      startBtn.classList.add("start-active");
+      stopBtn.classList.remove("stop-active");
+
+      shuffledChords = [...CHORDS];
+      shuffle(shuffledChords);
+      chordIndex = 0;
+
+      showChord(shuffledChords[chordIndex]);
+      startCountdown(seconds);
+
+      chordTimer = setInterval(() => {
+        chordIndex++;
+        if (chordIndex >= shuffledChords.length) {
+          shuffle(shuffledChords);
+          chordIndex = 0;
+        }
+        showChord(shuffledChords[chordIndex]);
+        startCountdown(seconds);
+      }, seconds * 1000);
+    }
+
+    function stop() {
+      clearInterval(chordTimer);
+      clearInterval(countdownTimer);
+      countdownEl.textContent = "";
+
+      startBtn.classList.remove("start-active");
+      stopBtn.classList.add("stop-active");
+    }
+  </script>
+
+</body>
+</html>
