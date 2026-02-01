@@ -26,9 +26,6 @@
         url("BackgroundImage.jpg") center / cover no-repeat;
     }
 
-    /* ======================
-       MAIN CHORD AREA
-       ====================== */
     .main {
       flex: 1;
       position: relative;
@@ -59,7 +56,6 @@
       filter: blur(0);
     }
 
-    /* Countdown */
     #countdown {
       position: absolute;
       right: 120px;
@@ -75,18 +71,12 @@
         0 0 6px rgba(255,255,255,0.9),
         0 0 12px rgba(255,255,255,0.6),
         0 0 18px rgba(255,255,255,0.3);
-
-      opacity: 0.95;
-      transition: opacity 0.2s ease, transform 0.2s ease;
     }
 
     .countdown-pop {
       transform: scale(1.15);
     }
 
-    /* ======================
-       SETTINGS PANEL (DESKTOP)
-       ====================== */
     .settings {
       width: 280px;
       padding: 36px 24px;
@@ -96,24 +86,6 @@
       display: flex;
       flex-direction: column;
       gap: 22px;
-      z-index: 10;
-    }
-
-    .app-title {
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0.4px;
-      opacity: 0.75;
-      text-transform: uppercase;
-    }
-
-    input {
-      width: 100%;
-      padding: 10px 12px;
-      font-size: 16px;
-      border-radius: 12px;
-      border: none;
-      outline: none;
     }
 
     .btn-row {
@@ -130,28 +102,14 @@
       color: #fff;
       cursor: pointer;
       background: rgba(255,255,255,0.15);
-      transition: background 0.2s ease, transform 0.15s ease;
     }
 
-    button:active {
-      transform: scale(0.96);
-    }
+    .start-active { background: #34c759; }
+    .stop-active { background: #ff3b30; }
 
-    .start-active {
-      background: #34c759;
-    }
-
-    .stop-active {
-      background: #ff3b30;
-    }
-
-    /* ======================
-       MOBILE LAYOUT (SETTINGS ON TOP)
-       ====================== */
+    /* Mobile: settings on top */
     @media (max-width: 900px) {
-      body {
-        flex-direction: column;
-      }
+      body { flex-direction: column; }
 
       .settings {
         width: 100%;
@@ -159,29 +117,12 @@
         align-items: center;
         gap: 14px;
         padding: 16px;
-
         border-left: none;
         border-bottom: 1px solid rgba(255,255,255,0.08);
-
-        /* 👇 Move settings to top */
         order: -1;
       }
 
-      .app-title {
-        display: none;
-      }
-
-      .settings input {
-        max-width: 80px;
-      }
-
-      .btn-row {
-        flex: 1;
-      }
-
-      #chord {
-        font-size: 180px;
-      }
+      #chord { font-size: 180px; }
 
       #countdown {
         right: 24px;
@@ -190,7 +131,6 @@
       }
     }
 
-    /* Extra small phones */
     @media (max-width: 480px) {
       #chord {
         font-size: 120px;
@@ -202,25 +142,22 @@
 
 <body>
 
-  <!-- MAIN -->
   <div class="main">
     <div id="chord" class="chord-in">C</div>
     <div id="countdown"></div>
   </div>
 
-  <!-- SETTINGS -->
   <div class="settings">
-    <div class="app-title">🎸 Trainer</div>
-
     <input type="number" id="interval" value="5" min="1">
-
     <div class="btn-row">
       <button id="startBtn" onclick="start()">Start</button>
       <button id="stopBtn" onclick="stop()">Stop</button>
     </div>
   </div>
 
-  <!-- External chord list -->
+  <!-- Ding sound -->
+  <audio id="dingSound" src="ding.mp3" preload="auto"></audio>
+
   <script src="chords.js"></script>
 
   <script>
@@ -234,6 +171,7 @@
     const countdownEl = document.getElementById("countdown");
     const startBtn = document.getElementById("startBtn");
     const stopBtn = document.getElementById("stopBtn");
+    const dingSound = document.getElementById("dingSound");
 
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
@@ -253,6 +191,11 @@
       }, 350);
     }
 
+    function playDing() {
+      dingSound.currentTime = 0;
+      dingSound.play().catch(() => {});
+    }
+
     function startCountdown(seconds) {
       clearInterval(countdownTimer);
       let remaining = seconds;
@@ -260,10 +203,16 @@
 
       countdownTimer = setInterval(() => {
         remaining--;
+
         if (remaining > 0) {
           countdownEl.textContent = remaining;
           countdownEl.classList.add("countdown-pop");
           setTimeout(() => countdownEl.classList.remove("countdown-pop"), 150);
+
+          // 🔔 Play ding at last second
+          if (remaining === 1) {
+            playDing();
+          }
         }
       }, 1000);
     }
@@ -279,6 +228,12 @@
       shuffledChords = [...CHORDS];
       shuffle(shuffledChords);
       chordIndex = 0;
+
+      // unlock audio on iOS
+      dingSound.play().then(() => {
+        dingSound.pause();
+        dingSound.currentTime = 0;
+      }).catch(() => {});
 
       showChord(shuffledChords[chordIndex]);
       startCountdown(seconds);
@@ -298,7 +253,6 @@
       clearInterval(chordTimer);
       clearInterval(countdownTimer);
       countdownEl.textContent = "";
-
       startBtn.classList.remove("start-active");
       stopBtn.classList.add("stop-active");
     }
