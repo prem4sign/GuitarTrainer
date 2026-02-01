@@ -58,19 +58,25 @@
 
     #countdown {
       position: absolute;
-      right: 120px;
-      bottom: 120px;
-      font-size: 86px;
-      font-weight: 700;
-      color: #ff3b30;
+  top: 65%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 24px;
 
-      -webkit-text-stroke: 1.5px #000;
-      text-stroke: 1.5px #000;
+  font-size: 86px;
+  font-weight: 700;
+  color: #ff3b30;
 
-      text-shadow:
-        0 0 6px rgba(255,255,255,0.9),
-        0 0 12px rgba(255,255,255,0.6),
-        0 0 18px rgba(255,255,255,0.3);
+  -webkit-text-stroke: 1.5px #000;
+  text-stroke: 1.5px #000;
+
+  text-shadow:
+    0 0 6px rgba(255,255,255,0.9),
+    0 0 12px rgba(255,255,255,0.6),
+    0 0 18px rgba(255,255,255,0.3);
+
+  opacity: 0.95;
+  transition: opacity 0.2s ease, transform 0.2s ease;
     }
 
     .countdown-pop {
@@ -125,9 +131,10 @@
       #chord { font-size: 180px; }
 
       #countdown {
-        right: 24px;
-        bottom: 24px;
-        font-size: 48px;
+        top: 65%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 48px;
       }
     }
 
